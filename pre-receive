@@ -1,0 +1,77 @@
+# pre-receive
+ 
+#!/bin/bash
+
+origin_path=$(cd "$(dirname "$0")/..";pwd)
+desPath=~/build_code/pre-receive/
+
+mkdir_and_cp_file(){
+    result=$(echo $1 | grep "/")
+    if [ "$result" != "" ];then
+        mkdir -p $2/${1%/*}
+        echo mkdir_and_cp_file:$1
+    fi
+    
+    # tempDir=temp
+    # mkdir -p $tempDir
+    # git archive --format tar.gz --output "$tempDir/output.tar.gz" $newVersion $1
+    # tar zxf $tempDir/output.tar.gz -C $tempDir
+    # cp  $tempDir/$1 $2/$1
+    # rm -rf $tempDir
+ 
+    git show $newVersion:$1 > $2/$1
+ 
+}
+ 
+while read oldVersion newVersion branch; do
+    # 只对master分支做检查
+    result=$(echo ${branch}| grep "master")
+    if [ "$result" != "" ];then
+        echo 开始检查代码
+        rm -rf $desPath/*
+        # echo -e "\ncp file"
+        gitDiff=`git diff --name-status $oldVersion $newVersion | awk '$1 == "M" { print $2 }'`
+        for var in ${gitDiff}; do
+            echo "M:"${var}
+            mkdir_and_cp_file ${var} $desPath
+        done
+        
+        # echo -e "\nmkdir and add cp file"
+        gitDiff=`git diff --name-status $oldVersion $newVersion | awk '$1 == "A" { print $2 }'`
+        for var in ${gitDiff}; do
+            echo "A:"${var}
+            mkdir_and_cp_file ${var} $desPath
+        done
+        
+        gitDiff=`git diff --name-status $oldVersion $newVersion | awk '$1 ~ "R" { print $3}'`
+        for var in ${gitDiff}; do
+            echo "R:"${var}
+            mkdir_and_cp_file ${var} $desPath
+        done
+        
+        # echo -e "\ndelete file"
+        # gitDiff=`git diff --name-status $oldVersion $newVersion | awk '$1 == "D" { print $2 }'`
+        # for var in ${gitDiff}; do
+        #     echo "D:"${var}
+        #     rm $desPath/${var}
+        # done
+        
+        # gitDiff=`git diff --name-status $oldVersion $newVersion | awk '$1 ~ "R" { print $2}'`
+        # for var in ${gitDiff}; do
+        #     echo "R2:"${var}
+        #     rm $desPath/${var}
+        # done
+        
+        # cd $desPath
+        unset GIT_DIR
+        unset GIT_QUARANTINE_PATH
+        #开始验证代码
+        # bash check_code.sh # 自定义的检查脚本
+        python3 ~/check_code.py $desPath
+        if [ $? -ne 0 ]; then
+            echo 检查代码失败
+            exit 0 #改为1则阻止上传
+        fi
+        echo 检查代码成功
+    fi
+done
