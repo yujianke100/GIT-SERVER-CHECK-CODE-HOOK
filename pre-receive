@@ -1,9 +1,15 @@
-# pre-receive
- 
 #!/bin/bash
-
+echo pre-receive!
 origin_path=$(cd "$(dirname "$0")/..";pwd)
-desPath=~/build_code/pre-receive/
+desPath=/tmp/pre-receive/
+
+if [ ! -d "$desPath" ];then
+    mkdir $desPath
+else
+    rm -rf $desPath
+    mkdir $desPath
+  # echo "文件夹已经存在"
+fi
 
 mkdir_and_cp_file(){
     result=$(echo $1 | grep "/")
@@ -24,11 +30,11 @@ mkdir_and_cp_file(){
 }
  
 while read oldVersion newVersion branch; do
-    # 只对master分支做检查
-    result=$(echo ${branch}| grep "master")
+    # 只对main分支做检查
+    result=$(echo ${branch}| grep "main")
     if [ "$result" != "" ];then
         echo 开始检查代码
-        rm -rf $desPath/*
+        # rm -rf $desPath/*
         # echo -e "\ncp file"
         gitDiff=`git diff --name-status $oldVersion $newVersion | awk '$1 == "M" { print $2 }'`
         for var in ${gitDiff}; do
@@ -67,11 +73,13 @@ while read oldVersion newVersion branch; do
         unset GIT_QUARANTINE_PATH
         #开始验证代码
         # bash check_code.sh # 自定义的检查脚本
-        python3 ~/check_code.py $desPath
+        # python3 ~/check_code.py $desPath
         if [ $? -ne 0 ]; then
             echo 检查代码失败
+            rm -rf $desPath
             exit 0 #改为1则阻止上传
         fi
         echo 检查代码成功
+        rm -rf $desPath
     fi
 done
