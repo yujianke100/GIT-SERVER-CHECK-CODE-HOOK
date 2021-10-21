@@ -30,3 +30,7 @@ while read oldVersion newVersion branch; do
 python的用途即为判断代码合法性并在发现不合法时发送邮件。可根据自己的需求修改代码。
 
 ### 若需要阻止不合法的代码上传，可将`pre-receive`中73行的`exit 0`改为`exit 1`
+
+## 技术债
+
+未实现获取操作用户的邮箱功能，因此邮件暂时只能发送给一个固定的邮箱。
