@@ -2,9 +2,24 @@
 GIT钩子，可在服务器端确认更新的代码是否合法，并发送邮件提醒
 
 ## 使用方式：
-1. 根据需求修改`pre-receive`,主要是仓库路径。
+1. 根据需求修改`pre-receive`,主要是临时目录路径。
 2. 将`pre-receive`,文件存放于服务器端的仓库文件夹下的`./.git/hooks`下。
 3. 将`check_code.py`文件存放于`~`目录下
+
+## gitlab使用：
+gitlab钩子[官方文档](https://docs.gitlab.com/ee/administration/server_hooks.html)
+1. 更改配置文件`/etc/gitlab/gitlab.rb`中的`gitlab_shell['custom_hooks_dir']`，默认路径为`/var/opt/gitlab/gitaly/custom_hooks`。注意启用后reload并restart：
+```
+sudo gitlab-ctl reconfigure
+sudo gitlab-ctl restart
+```
+3. 建立上述路径，并在该路径下创建`pre-receive.d`
+4. 根据要求修改`pre-receive`文件，主要是修改所需匹配的分支名称
+```
+while read oldVersion newVersion branch; do
+    # 只对main分支做检查
+    result=$(echo ${branch}| grep "main")
+```
 
 ## 关于python
 
