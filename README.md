@@ -14,13 +14,15 @@ sudo gitlab-ctl reconfigure
 sudo gitlab-ctl restart
 ```
 3. 建立上述路径，并在该路径下创建`pre-receive.d`。
-4. 根据要求修改`pre-receive`文件，主要是修改所需匹配的分支名称。
+4. 根据要求修改`pre-receive`文件，主要是修改所需匹配的分支名称：
 ```
 while read oldVersion newVersion branch; do
     # 只对main分支做检查
     result=$(echo ${branch}| grep "main")
 ```
-5. 注意文件夹和脚本权限。
+以及python脚本路径。
+5. 在上一步设置的路径下放置python脚本，并修改邮箱信息。需要时可修改判断逻辑。当python使用sys.exit(1)时，将返回脚本失败结果，脚本可以使用exit 1终止更新操作。
+6. 注意文件夹和脚本权限。
 ## 关于python
 
 使用的是python3，若需要使用2，请自行修改代码。
